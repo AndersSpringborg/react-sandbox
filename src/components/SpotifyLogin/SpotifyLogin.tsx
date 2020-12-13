@@ -1,49 +1,64 @@
-import React from 'react';
-import {Button} from 'antd';
-import './SpotifyLogin.css';
+import { Button } from 'antd';
+import React, {useState} from "react";
+// @ts-ignore
+// @ts-ignore
+import { SpotifyAuth, Scopes } from 'react-spotify-auth'
+import { useCookies } from 'react-cookie';
+import axios from 'axios'
+import './SpotifyLogin.css'
 
-const clientId = '5589dd5ccfac4e96bf860c7ac8801b7e'
-const authEndpoint = 'https://accounts.spotify.com/authorize';
-const redirectUri = "http://localhost:3000/"
-const scopes = [
-    "user-read-currently-playing",
-    "user-read-playback-state"
-  ]
+// https://developer.spotify.com/documentation/web-api/reference/personalization/get-users-top-artists-and-tracks/
 
 
-const spotifyEndpoint = `${authEndpoint}?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scopes.join("%20")}&response_type=token&show_dialog=true`
-const hash = window.location.hash
-window.location.hash = "";
+const SpotifyLogin : React.FC = () => {
+    const [cookies, setCookie] = useCookies();
 
-const extractToken = () => {
-    return 'BQAGAnxoqLHHNKxglH8mqGBJCKJWs7f3EwZC0tE6oquF3cMMFzBLKqVGRdDscqP1ULhq7_2mIJNxSqet1VuCDm-cNmc8I18Wd-e182kqLlRt3S408jcSFKpzms0d-MvWs2fu_E7aOO4zBZQZAckZkA'
-}
-class SpotifyLogin extends React.Component{
+    const scopes = [Scopes.userTopRead]
+    const client_id = process.env.CLIENT_ID
 
-    componentDidMount() {
-        // Set token
-        let _token = extractToken();
-        if (_token) {
-          // Set token
-          this.setState({
-            token: _token
-          });
-        }
-      }
+    // curl -X GET "https://api.spotify.com/v1/me/top/artists" -H "Authorization: Bearer {your access token}"
+    const fetchSpotifyData = (token: string) : any => {
+        const AuthStr = 'Bearer ' + token
+        const URL = 'https://api.spotify.com/v1/me/top/artists'
 
-    render(){
-        return(
-            <div>
-                <p>SpotifyLogin</p>
-                <a href={spotifyEndpoint}>
-                    <Button type={'primary'} shape={'round'}>
-                        Login Spotify
-                    </Button>
-                </a>
-            </div>
-        )
+        const headers = {
+            'Authorization': AuthStr
+        };
+
+        axios.get(URL, {headers})
+            .then(res => {
+                setArtist(JSON.stringify(res))
+            })
+            .catch(err => {
+                console.error(err)
+                return 'Error'
+            })
     }
+    const [artist, setArtist] = useState('Press the button to get artist')
+    const token = cookies.spotifyAuthToken
+    return (
+        <div>
+            <p>SpotifyLogin</p>
+            <p>top Artist: {artist}{}</p>
+            <SpotifyAuth
+                redirectUri='http://localhost:3000/'
+                clientID={client_id}
+                scopes={scopes}
+            />
+            <Button type={'primary'} onClick={() => {setCookie('spotifyAuthToken', NaN)}}>
+                Delete cookie
+            </Button>
+            <Button type={'primary'} ghost={true} onClick={() => {fetchSpotifyData(token)}}>
+                Get artist
+            </Button>
+            <div>
+                <p>Dev info</p>
+                <p style={{fontSize: '10px'}}>
+                    token: {token}
+                </p>
+            </div>
+        </div>
+    )
 }
-
 
 export default SpotifyLogin;
