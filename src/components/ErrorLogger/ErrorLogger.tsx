@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import styles from './ErrorLogger.module.css';
 import axios from 'axios';
+import {Button} from 'antd';
 
 function ErrorLogger(){
 
-const [spotifyResponse, setSpotifyResponse] = useState('Spotidy Placeholder')
+  const [spotifyResponse, setSpotifyResponse] = useState('Spotify Placeholder')
 
   function sendSpotifyResponse() {
 
@@ -17,11 +17,11 @@ const [spotifyResponse, setSpotifyResponse] = useState('Spotidy Placeholder')
 
 
   return(
-    <div className={styles.ErrorLogger}>
+    <div>
       <p> Spotify response:</p>
-      <button onClick={sendSpotifyResponse}>
+      <Button onClick={sendSpotifyResponse}>
         Fire1
-      </button>
+      </Button>
       <p>
         {spotifyResponse}
       </p>
